@@ -6,6 +6,7 @@
 #include <cstring>
 #include <string>
 #include <type_traits>
+#include <array>
 
 //template to print out container elements wrapped it with "{" and "}".
 template<typename Os, typename V>
@@ -179,9 +180,22 @@ void std_take_while_view(){
         std::cout<<x;
         }
 }
+void std_drop_view()
+{
+    constexpr std::array hi{'H','e','l','l','o',',',' ','C','+','+','2','3'};
+    std::ranges::for_each(hi,[](const char c) {std::cout<< c;});
+    std::cout<<'\n';
+    constexpr auto n = std::distance(hi.cbegin(),std::ranges::find(hi,'C'));
+
+    auto cxx = std::ranges::drop_view{hi,n};
+    std::ranges::for_each(cxx,[] (const char c) {std::cout<<c;});
+    std::cout<<'\n';
+}
+
 
 int main() {
-    std_take_while_view();
+    std_drop_view();
+//    std_take_while_view();
 //    std_ranges_refview();
 //    std_ranges_rangeAccess();
 //    std_ranges_adaptors();
