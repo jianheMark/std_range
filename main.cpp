@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstring>
 #include <string>
+#include <type_traits>
 
 //template to print out container elements wrapped it with "{" and "}".
 template<typename Os, typename V>
@@ -113,9 +114,78 @@ void std_ranges_rangeAccess()
 
     std::cout<<"OK\n";
 }
+void std_ranges_adaptors()
+{
+    std::vector<int> v{0,1,2,3,4,5};
+    for (int n: std::views::all(v) | std::views::take(2)) {
+        std::cout<< n<<' ';
+    }
+
+    static_assert(
+            std::is_same<decltype(std::views::single(42)),
+                std::ranges::single_view<int>>{}
+            );
+    static_assert(
+            std::is_same<
+                    decltype(std::views::all(v)),
+                    std::ranges::ref_view<std::vector<int,std::allocator<int>>>
+                    >{}
+            );
+    int a[] {1,2,3,4};
+
+    static_assert(
+            std::is_same<
+                    decltype(std::views::all(a)),
+                    std::ranges::ref_view<int [4]>
+                    >{}
+            );
+    //todo file:///C:/Users/JIAN%20HE/Downloads/html-book-20220201/reference/en/cpp/ranges/all_view.html
+    // the last example.
+}
+
+void std_ranges_refview()
+{
+    //ref_view is a view of elements of some other range. It wraps a reference to that range.
+    const std::string s("many world");
+    const std::ranges::take_view tv(s,3);
+    const std::ranges::ref_view rv(tv);
+    std::cout
+            <<std::boolalpha
+            <<"Call empty(): "<<rv.empty()<<'\n'
+            <<" call size(): "<<rv.size()<<'\n'
+            <<"call begin(): "<< *rv.begin()<<'\n'
+            <<"call end():"<<*(rv.end()-1)<<'\n'
+            <<"call data(): " <<rv.data()<<'\n'
+            <<"call base() : " <<rv.base().size()<<'\n'
+            <<"range-for   : ";
+    for (const auto c:rv) {std::cout<<c;}
+    std::cout<<'\n';
+}
+void std_take_while_view(){
+    for (int year: std::views::iota(2017)
+        | std::views::take_while([] (int y) {return y <= 2022; } ))
+        {
+        std::cout<<year<<' ';
+        }
+    std::cout<<'\n';
+    const char idea[] {"Today is yesterday's tomorrow!.."};
+    /*
+     * Range adaptor object. The expression view::take_while(e,f) is expression-equivalent
+     * to take_while_view(e,f) any suitable subexpression e and f.
+     * //todo understand this part.
+     */
+    for (char x: std::ranges::take_while_view(idea,[](char c) { return c != '.';}))
+        {
+        std::cout<<x;
+        }
+}
 
 int main() {
+    std_take_while_view();
+//    std_ranges_refview();
+//    std_ranges_rangeAccess();
+//    std_ranges_adaptors();
 
-    std_ranges_rangeAccess();
+
     return 0;
 }
