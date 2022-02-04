@@ -10,6 +10,7 @@
 #include <utility>
 #include <iomanip>
 #include <map>
+#include <string_view>
 
 //template to print out container elements wrapped it with "{" and "}".
 template<typename Os, typename V>
@@ -239,13 +240,17 @@ void std_ranges_values_view()
 }
 void std_ranges_elements_view()
 {
+    /*
+     * Accepts a view of tuple-like values, and issues a view with
+     * value-type of N-th element of the adapted view's value-type
+     */
     const std::vector<std::tuple<int,char,std::string>> vt {
             {1,'A',"real"},
             {2,'B',"FAKE"},
             {3,'C',"CMAKE"},
             {4,'D',"packages"},
             {5,'E',"messages"},
-    }
+    };
     for (int const e: std::views::elements<0>(vt)) {
         std::cout<<e<<' ';
     }
@@ -259,12 +264,50 @@ void std_ranges_elements_view()
         std::cout<<e<<' ';
     }
     std::cout<<'\n';
+}
+void std_ranges_split_view()
+{
+//    constexpr std::string_view words{"Hello-_-C++-_-!"};
+//    constexpr std::string_view delim {"-_-"};
+//    for (const auto word : std::views::split(words, delim)) {
+//        std::cout<<
+//            std::quoted(std::string_view(word.begin(),word.end())) <<' ';
+//    }
+}
+std::string trimF(std::string_view const in) {
+    auto view = in
+            | std::views::drop_while(isspace)
+            | std::views::reverse
+            | std::views::drop_while(isspace)
+            | std::views::reverse;
+    return {view.begin(),view.end()};
+}
+void std_ranges_drop_while_view()
+{
+    const auto s = trimF(" \f\n\t\r\vHello, c++23!\f\n\t\r\v ");
+    std::cout<<quoted(s)<<'\n';
 
+    static constexpr auto v = {0,1,2,3,4,5};
+    for (int n : v | std::views::drop_while([] (int i) {return i<3;}))
+        std::cout<<n<<' ';
 }
 
+void std_ranges_views_counted()
+{
+    //A counted view presents a view of elements of the counted range[i,n) for some iterator i and non-negative integer n.
+    const auto i1 = {1,2,3,4,5};
+    for (auto i : std::views::counted(i1.begin()+1,4))
+        std::cout<<i <<' ';
+    std::cout<<'\n';
+}
+
+
 int main() {
-    std_ranges_elements_view();
-    std_ranges_values_view();
+    std_ranges_views_counted();
+//    std_ranges_drop_while_view();
+//    std_ranges_split_view();
+//    std_ranges_elements_view();
+//    std_ranges_values_view();
 //    std_ranges_keys_view();
 //    std_range_view();
     //    std_drop_view();
