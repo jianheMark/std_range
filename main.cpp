@@ -7,6 +7,9 @@
 #include <string>
 #include <type_traits>
 #include <array>
+#include <utility>
+#include <iomanip>
+#include <map>
 
 //template to print out container elements wrapped it with "{" and "}".
 template<typename Os, typename V>
@@ -182,6 +185,7 @@ void std_take_while_view(){
 }
 void std_drop_view()
 {
+    //std::ranges::drop_view default constructor. Value-initializes the underlying view and initializes the count to 0.
     constexpr std::array hi{'H','e','l','l','o',',',' ','C','+','+','2','3'};
     std::ranges::for_each(hi,[](const char c) {std::cout<< c;});
     std::cout<<'\n';
@@ -191,10 +195,66 @@ void std_drop_view()
     std::ranges::for_each(cxx,[] (const char c) {std::cout<<c;});
     std::cout<<'\n';
 }
+void std_range_view()
+{
+//    A "sentinel" in this context is a special value used to indicate the end of a sequence.
+    auto const ints = {0,1,2,3,4,5};
+    auto even  = [](int i) {return 0 == i % 2;};
+    auto square = [] (int i) {return i * i;};
+    //"pipe" syntax of composing the views.
+    for (int i: ints | std::views::filter(even) | std::views::transform(square)) {
+        std::cout<<i<<' ';
+    }
+    std::cout<<'\n';
 
+    //a traditional "functional" composing syntax.
+    for (int i: std::views::transform(std::views::filter(ints,even),square)) {
+        std::cout<<i<<' ';
+    }
+}
+
+void std_ranges_keys_view()
+{
+    //Takes a view of tuple-like values,
+    // and produces a view with a value-type of the first element of the adapted view's value type.
+    const std::vector<std::pair<std::string,double>> quark_mass {
+        {"up", 2.3},{"down",4.8},
+        {"charm",1275},{"strange",95},
+        {"top",173'210},{"bottom",4'180},
+    };
+    std::cout<<"quark name:   | ";
+    for (std::string const& name: std::views::keys(quark_mass))
+        std::cout<<std::setw(9) <<name<<" | ";
+    std::cout<<"\n mass MeV/c2: | ";
+    for (const double mass: std::views::values(quark_mass))
+        std::cout<<std::setw(9)<<mass<<" | ";
+}
+void std_ranges_values_view()
+{
+    std::map<char, int> map {{'A',1},{'B',2},{'C',3},{'D',4},{'E',5}};
+    auto odd = [] (int x) { return 0 != (x & 1);};
+    std::cout<<"Odd value in the map: ";
+    for (int value :  map | std::views::values | std::views::filter(odd))
+        std::cout<<value<<' ';
+}
+void std_ranges_elements_view()
+{
+    const std::vector<std::tuple<int,char,std::string>> vt {
+            {1,'A',"real"},
+            {2,'B',"FAKE"},
+            {3,'C',"CMAKE"},
+            {4,'D',"packages"},
+            {5,'E',"messages"},
+    }
+
+}
 
 int main() {
-    std_drop_view();
+    std_ranges_elements_view();
+    std_ranges_values_view();
+//    std_ranges_keys_view();
+//    std_range_view();
+    //    std_drop_view();
 //    std_take_while_view();
 //    std_ranges_refview();
 //    std_ranges_rangeAccess();
