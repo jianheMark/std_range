@@ -12,6 +12,14 @@
 #include <map>
 #include <string_view>
 
+//#define lazy_split_view split_view
+//#define lazy_split split
+//template for
+auto print_view = [] (auto const& view) {
+    for (std::cout<<"{ "; const auto element : view)
+        std::cout<<element<<' ';
+    std::cout<<" }";
+};
 //template to print out container elements wrapped it with "{" and "}".
 template<typename Os, typename V>
 Os& operator<< (Os& os, V const& v) {
@@ -300,10 +308,87 @@ void std_ranges_views_counted()
         std::cout<<i <<' ';
     std::cout<<'\n';
 }
+void std_ranges_join_view()
+{
+    /*std::ranges::join_view.
+     * A Range adaptor that represents view consisting of the sequence obtained from flattening a view of range.
+    */
+    using namespace std::literals;
+    const auto bits = {"reference/"sv,"en/"sv,"ranges/"sv,"join_view"sv,"./"sv,"html"sv};
+    for (char const c: bits | std::views::join)
+        std::cout<<c;
+    std::cout<<'\n';
+}
+
+void std_lazy_split_view()
+{
+    //lazy_split_view takes a view and a delimiter, and a splits the view into subranges on delimiter.
+    constexpr static auto source = {0,1,0,2,3,0, 4,5,6,0, 7,8,9 };
+    constexpr int delimiter {0};
+    constexpr std::ranges::split_view outer_view(source, delimiter);
+
+    std::cout<<"Splits["<<std::ranges::distance(outer_view) <<"]: ";
+    for (auto const& innner_view: outer_view)
+        print_view(innner_view);
+    constexpr std::string_view hello {"Hello C++ 23 !"};
+    std::cout<<"\n substring: ";
+    std::ranges::for_each(hello | std::views::split(' '), print_view);
+}
+void std_ranges_dangling()
+{
+    //todo reference/en/cpp/ranges/borrowed_range.html
+    auto get_array_by_value = [] { return std::array{0,1,0,1}; };
+    auto dangling_iter  = std::ranges::max_element(get_array_by_value());
+
+    static_assert(std::is_same_v<std::ranges::dangling,
+                                decltype(dangling_iter)>);
+//    std::cout<<*dangling_iter;
+    auto get_persistent_array = [] () -> const std::array<int, 4>& {
+        static constexpr std::array a{0,1,0,1};
+        return a;
+    };
+    auto valid_iter = std::ranges::max_element(get_persistent_array());
+//    std::cout<<decltype(valid_iter);
+    static_assert(
+            !std::is_same_v<std::ranges::dangling, decltype(valid_iter)>
+            );
+    std::cout<<*valid_iter<<' ';
+
+    auto get_string_view = [] { return std::string_view{"alpha"};};
+    auto valid_iter2 = std::ranges::min_element(get_string_view());
+    static_assert(
+            !std::is_same_v<std::ranges::dangling, decltype(valid_iter2)>
+            );
+    std::cout<<'\''<<*valid_iter2<<'\''<<'\n';
+
+}
+
+const int& getRef(const int* p) { return *p;}
+auto getRefFwdBad(const int* p) { return getRef(p);}
+void std_decltype_specifier()
+{
+    //todo https://en.cppreference.com/w/cpp/language/decltype
+    static_assert(
+            std::is_same_v<decltype(getRef), const int&(const int*)>
+                    );
+    static_assert(
+            std::is_same_v<decltype(getRefFwdBad),int(const int*)>,
+                "Just returning auto isn't prefect forwarding."
+            );
+}
 
 
 int main() {
-    std_ranges_views_counted();
+    /* In computer programming, a sentinel value
+     (also referred to as a flag value, trip value, rogue value, signal value, or dummy data)[1]
+    is a special value in the context of an algorithm which uses its presence as a condition of termination,
+    typically in a loop or recursive algorithm.
+    */
+     std_ranges_dangling();
+//    std_decltype_specifier();
+//    std_lazy_split_view();
+//    std_ranges_join_view();
+//    std_ranges_views_counted();
 //    std_ranges_drop_while_view();
 //    std_ranges_split_view();
 //    std_ranges_elements_view();
@@ -315,7 +400,5 @@ int main() {
 //    std_ranges_refview();
 //    std_ranges_rangeAccess();
 //    std_ranges_adaptors();
-
-
-    return 0;
+    std::cout<<"OK\n";return 0;
 }
