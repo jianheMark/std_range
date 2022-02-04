@@ -246,6 +246,19 @@ void std_ranges_elements_view()
             {4,'D',"packages"},
             {5,'E',"messages"},
     }
+    for (int const e: std::views::elements<0>(vt)) {
+        std::cout<<e<<' ';
+    }
+    std::cout<<'\n';
+    for (char const e: vt | std::views::elements<1>) {
+        std::cout<<e<<' ';
+    }
+    std::cout<<'\n';
+
+    for (std::string const& e: std::views::elements<2>(vt)) {
+        std::cout<<e<<' ';
+    }
+    std::cout<<'\n';
 
 }
 
